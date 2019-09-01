@@ -1,0 +1,13 @@
+
+[build]
+  command = "npm run build"
+  publish = "public"
+  functions = "dist"
+
+[template.environment]
+  FAUNADB_SERVER_SECRET = "Your FaunaDB Server Secret"
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/index"
+  status = 200

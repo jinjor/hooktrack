@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "types": ["node", "mocha"],
+    "pretty": true,
+    "noImplicitAny": true,
+    "strictNullChecks": false,
+    "declaration": false,
+    "removeComments": false,
+    "noUnusedLocals": false,
+    "noImplicitReturns": false,
+    "listEmittedFiles": false,
+    "listFiles": false,
+    "allowSyntheticDefaultImports": true,
+    "preserveWatchOutput": true,
+    "sourceMap": true,
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "test/**/*"]
+}
