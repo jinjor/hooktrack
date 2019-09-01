@@ -66,4 +66,5 @@ app.use("/.netlify/functions/index", router);
 
 const handler = serverless(app);
 
-export { handler };
+exports.handler = handler;
+// export { handler };
