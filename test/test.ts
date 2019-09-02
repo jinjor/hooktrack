@@ -32,7 +32,7 @@ describe("Hooktrack", function() {
   this.timeout(30 * 1000);
   let netlifyLambda: ChildProcess;
   before(async () => {
-    netlifyLambda = spawn("npm", ["run", "start:server"], {
+    netlifyLambda = spawn("npm", ["run", "dev"], {
       stdio: "inherit"
     });
     await waitOn(
