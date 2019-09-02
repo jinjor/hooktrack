@@ -93,7 +93,10 @@ class DataImpl implements Data {
       endpoint
     };
     const res = await this.client.query(
-      q.Create(q.Collection("endpoints"), { data })
+      q.Create(q.Collection("endpoints"), {
+        data,
+        ttl: q.Epoch(Date.now() + 1 * 60 * 60 * 1000, "millisecond")
+      })
     );
     console.log("addEndPoint:success", res);
     return key;
@@ -106,7 +109,10 @@ class DataImpl implements Data {
       requestedAt: Date.now()
     };
     const res = await this.client.query(
-      q.Create(q.Collection("results"), { data: result })
+      q.Create(q.Collection("results"), {
+        data: result,
+        ttl: q.Epoch(Date.now() + 1 * 60 * 60 * 1000, "millisecond")
+      })
     );
     console.log("addRequest:success", res);
     return result;
