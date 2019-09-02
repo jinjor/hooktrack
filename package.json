@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "netlify-lambda serve src -c webpack.functions.js",
-    "build": "netlify-lambda build src",
+    "build": "netlify-lambda build src -c webpack.functions.js",
     "test": "npm run nyc -- test/test.ts",
     "nyc": "nyc mocha -r ts-node/register -r source-map-support/register"
   },
