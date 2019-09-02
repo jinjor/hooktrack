@@ -63,9 +63,8 @@ router.all("/:key", async (req: Req, res: Res) => {
 const app = express();
 app.use(express.json());
 app.use("/.netlify/functions/index", router);
+app.use("/api", router);
 
 const handler = serverless(app);
 
-// module.exports = app;
 exports.handler = handler;
-// export { handler };
