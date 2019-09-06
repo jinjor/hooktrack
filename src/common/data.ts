@@ -1,11 +1,11 @@
 import * as faunadb from "faunadb";
 
 const secret = process.env.FAUNADB_SERVER_SECRET || "";
-const testMode = !secret;
 
 console.log("FAUNADB_SERVER_SECRET:", secret.replace(/\w/g, "*"));
-if (testMode) {
-  console.log(`data module will work with "test" mode.`);
+if (!secret) {
+  console.log("FAUNADB_SERVER_SECRET is not set.");
+  process.exit(1);
 }
 
 import * as uuid from "uuid";
