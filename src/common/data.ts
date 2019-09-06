@@ -134,24 +134,21 @@ class DataImpl implements Data {
       return null;
     }
     const { client, q } = this;
-    // TODO: Filter, OrderBy
+    // TODO: OrderBy
     const items = await client.query(
       q.Select(
         "data",
-        q.Map(
-          q.Paginate(q.Match("results_by_key", key), { size: 100000 }),
-          q.Lambda("x", q.Select("data", q.Get(q.Var("x"))))
+        q.Filter(
+          q.Map(
+            q.Paginate(q.Match("results_by_key", key), { size: 100000 }),
+            q.Lambda("x", q.Select("data", q.Get(q.Var("x"))))
+          ),
+          q.Lambda("x", q.GTE(q.Select("requestedAt", q.Var("x")), from || 0))
         )
       )
     );
     console.log("getResults:success", items);
-    const all = [];
     items.sort((d1: any, d2: any) => d1.requestedAt < d2.requestedAt);
-    for (const item of items) {
-      if (item.requestedAt > (from || 0)) {
-        all.push(item);
-      }
-    }
-    return all;
+    return items;
   }
 }

@@ -64,6 +64,12 @@ const app = express();
 app.use(express.json());
 app.use("/.netlify/functions/index", router);
 app.use("/api", router);
+app.use((err: any, req: any, res: any, next: any) => {
+  if (err.requestResult) {
+    console.log(err.requestResult.responseContent);
+  }
+  next(err);
+});
 
 const handler = serverless(app);
 
