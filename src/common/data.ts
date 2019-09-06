@@ -116,9 +116,7 @@ class DataImpl implements Data {
   }
   async getEndpoint(key: string): Promise<Endpoint> {
     const { q } = this;
-    const setRef = await this.client.query(
-      q.Match(q.Index("endpoints_by_key"), key)
-    );
+    const setRef = await this.client.query(q.Match("endpoints_by_key", key));
     console.log("getEndpoint:success", setRef);
     if (await this.client.query(q.Exists(setRef))) {
       const res = await this.client.query(q.Get(setRef));
@@ -134,7 +132,7 @@ class DataImpl implements Data {
     const { client, q } = this;
     const res = await client.query(
       q.Map(
-        q.Paginate(q.Match(q.Index("results_by_key"), key)),
+        q.Paginate(q.Match("results_by_key", key)),
         q.Lambda("r", q.Get(q.Var("r")))
       )
     );
