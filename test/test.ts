@@ -60,20 +60,23 @@ describe("Hooktrack", function() {
       }
     });
     const { key } = await res.json();
-    res = await post(`/${key}`, {});
+    res = await post(`/${key}`, { num: 1 });
+    res = await post(`/${key}`, { num: 2 });
     assert.equal(res.status, 200);
     const data = await res.json();
     assert.equal(res.headers.get("foo"), "bar");
     assert.equal(data.greeting, "Hello!");
     res = await get(`/endpoints/${key}/results`);
     let results = await res.json();
-    assert.equal(results.items.length, 1);
+    assert.equal(results.items.length, 2);
+    assert.deepEqual(results.items[0].request.body, { num: 2 });
+    assert.deepEqual(results.items[1].request.body, { num: 1 });
     res = await get(`/endpoints/${key}/results?from=${Date.now()}`);
     results = await res.json();
     assert.equal(results.items.length, 0);
     res = await get(`/endpoints/${key}/results?from=${Date.now() - 10 * 1000}`);
     results = await res.json();
-    assert.equal(results.items.length, 1);
+    assert.equal(results.items.length, 2);
   });
   it("errors", async () => {
     let res;
