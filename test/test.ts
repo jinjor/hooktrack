@@ -85,6 +85,10 @@ describe("Hooktrack", function() {
     assert.equal(res.status, 404);
     res = await get(`/endpoints/foo/results`);
     assert.equal(res.status, 404);
+    res = await post(`/endpoints`, null);
+    assert.equal(res.status, 400);
+    res = await post(`/endpoints`, {});
+    assert.equal(res.status, 400);
     for (const method of [
       "GET",
       "POST",
