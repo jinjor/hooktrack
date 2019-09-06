@@ -35,11 +35,6 @@ interface Endpoint {
   method: Method;
   response?: Response;
 }
-interface EndpointWithStatus {
-  endpoint: Endpoint;
-  results: Result[];
-  expiredAt: number;
-}
 interface Result {
   request: Request;
   requestedAt: number;
