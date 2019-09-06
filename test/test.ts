@@ -2,6 +2,9 @@ import fetch from "node-fetch";
 import * as assert from "assert";
 import { spawn, ChildProcess } from "child_process";
 import * as waitOn from "wait-on";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const port = 9000;
 const origin = `http://localhost:${port}/.netlify/functions/index`;

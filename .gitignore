@@ -3,3 +3,4 @@ dist
 functions
 .nyc_output
 coverage
+.env
