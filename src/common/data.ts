@@ -72,9 +72,6 @@ export interface Data {
 }
 
 export function getData(): Data {
-  if (testMode) {
-    return new MockData();
-  }
   return new DataImpl();
 }
 
@@ -149,43 +146,5 @@ class DataImpl implements Data {
       }
     }
     return all;
-  }
-}
-
-class MockData {
-  private endpoints: Map<string, EndpointWithStatus> = new Map();
-  async addEndPoint(endpoint: Endpoint): Promise<string> {
-    const key: string = uuid.v4();
-    this.endpoints.set(key, {
-      endpoint,
-      results: [],
-      expiredAt: Date.now() + 24 * 60 * 60 * 1000
-    });
-    return key;
-  }
-  async addRequest(key: string, request: Request): Promise<Result> {
-    if (this.endpoints.has(key)) {
-      const result = {
-        request,
-        requestedAt: Date.now()
-      };
-      this.endpoints.get(key).results.push(result);
-      return result;
-    }
-    return null;
-  }
-  async getEndpoint(key: string): Promise<Endpoint> {
-    if (this.endpoints.has(key)) {
-      return this.endpoints.get(key).endpoint;
-    }
-    return null;
-  }
-  async getResults(key: string, from: number): Promise<Result[]> {
-    if (this.endpoints.has(key)) {
-      return this.endpoints.get(key).results.filter(result => {
-        return from ? result.requestedAt > from : true;
-      });
-    }
-    return null;
   }
 }
