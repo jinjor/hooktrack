@@ -136,7 +136,7 @@ class DataImpl implements Data {
         q.Lambda("r", q.Get(q.Var("r")))
       )
     );
-    console.log("getEndpoint:success", res);
+    console.log("getResults:success", res);
     const all = [];
     for (const result of res.data) {
       if (result.data.requestedAt > (from || 0)) {
