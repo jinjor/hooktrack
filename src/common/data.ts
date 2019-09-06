@@ -116,14 +116,18 @@ class DataImpl implements Data {
   }
   async getEndpoint(key: string): Promise<Endpoint> {
     const { q } = this;
-    const setRef = await this.client.query(q.Match("endpoints_by_key", key));
-    console.log("getEndpoint:success", setRef);
-    if (await this.client.query(q.Exists(setRef))) {
-      const res = await this.client.query(q.Get(setRef));
-      return res.data.endpoint;
-    } else {
-      return null;
-    }
+    const endpoint = await this.client.query(
+      q.Let(
+        { ref: q.Match("endpoints_by_key", key) },
+        q.If(
+          q.Exists(q.Var("ref")),
+          q.Select(["data", "endpoint"], q.Get(q.Var("ref"))),
+          null
+        )
+      )
+    );
+    console.log("getEndpoint:success", endpoint);
+    return endpoint;
   }
   async getResults(key: string, from: number): Promise<Result[]> {
     if (!(await this.getEndpoint(key))) {
