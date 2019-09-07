@@ -13,15 +13,7 @@ const router = PromiseRouter();
 
 router.use(express.json());
 router.post("/endpoints", async (req: Req, res: Res) => {
-  let endpoint;
-  try {
-    endpoint = endpointDecoder.run(req.body);
-  } catch (e) {
-    const status = e instanceof DecodeError ? 400 : 500;
-    return res.status(status).send({
-      message: e.message
-    });
-  }
+  const endpoint = endpointDecoder.run(req.body);
   const key = await data.addEndPoint(endpoint);
   res.send({
     key
@@ -65,12 +57,15 @@ app.use(express.json());
 app.use("/.netlify/functions/index", router);
 app.use("/api", router);
 app.use((err: any, req: any, res: any, next: any) => {
-  if (err.requestResult) {
-    console.log(err.requestResult.responseContent);
+  if (err instanceof DecodeError) {
+    return res.status(400).send({
+      message: err.message
+    });
   }
-  next(err);
+  res.status(500).send({
+    message: "unexpected error"
+  });
 });
-
 const handler = serverless(app);
 
 exports.handler = handler;
