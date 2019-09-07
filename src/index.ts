@@ -1,7 +1,7 @@
 import * as express from "express";
 import serverless from "serverless-http";
 import { DecodeError } from "./common/decoder";
-import { getData, endpointDecoder } from "./common/data";
+import { getData, endpointDecoder, fromDecoder } from "./common/data";
 import PromiseRouter from "express-promise-router";
 
 const data = getData();
@@ -21,7 +21,7 @@ router.post("/endpoints", async (req: Req, res: Res) => {
 });
 router.get("/endpoints/:key/results", async (req: Req, res: Res) => {
   const key = req.params.key;
-  const from = +req.query.from;
+  const from = fromDecoder.run(req.query.from);
   const results = await data.getResults(key, from);
   if (!results) {
     return res.status(404).send({

@@ -124,3 +124,29 @@ export function map<T, U>(f: (t: T) => U, d: Decoder<T>): Decoder<U> {
     }
   };
 }
+
+export function toInt(d: Decoder<string>): Decoder<number> {
+  return {
+    run(value: unknown): number {
+      const s = d.run(value);
+      const n = parseFloat(s);
+      if (!Number.isInteger(n)) {
+        throw new DecodeError(s + " is not an int!");
+      }
+      return n;
+    }
+  };
+}
+
+export function toNumber(d: Decoder<string>): Decoder<number> {
+  return {
+    run(value: unknown): number {
+      const s = d.run(value);
+      const n = parseFloat(s);
+      if (isNaN(n)) {
+        throw new DecodeError(s + " is not a number!");
+      }
+      return n;
+    }
+  };
+}

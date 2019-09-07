@@ -1,13 +1,4 @@
 import * as faunadb from "faunadb";
-
-const secret = process.env.FAUNADB_SERVER_SECRET || "";
-
-console.log("FAUNADB_SERVER_SECRET:", secret.replace(/\w/g, "*"));
-if (!secret) {
-  console.log("FAUNADB_SERVER_SECRET is not set.");
-  process.exit(1);
-}
-
 import * as uuid from "uuid";
 import {
   Decoder,
@@ -16,8 +7,17 @@ import {
   number,
   string,
   keywords,
-  dict
+  dict,
+  toNumber
 } from "./decoder";
+
+const secret = process.env.FAUNADB_SERVER_SECRET || "";
+
+console.log("FAUNADB_SERVER_SECRET:", secret.replace(/\w/g, "*"));
+if (!secret) {
+  console.log("FAUNADB_SERVER_SECRET is not set.");
+  process.exit(1);
+}
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTION";
 type Headers = { [key: string]: string };
@@ -58,6 +58,7 @@ export const endpointDecoder: Decoder<Endpoint> = object({
   method: methodDecoder,
   response: optional(responseDecoder)
 });
+export const fromDecoder: Decoder<number> = optional(toNumber(string));
 
 export interface Data {
   addEndPoint(endpoint: Endpoint): Promise<string>;
