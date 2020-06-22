@@ -16,7 +16,7 @@ router.post("/endpoints", async (req: Req, res: Res) => {
   const endpoint = endpointDecoder.run(req.body);
   const key = await data.addEndPoint(endpoint);
   res.send({
-    key
+    key,
   });
 });
 router.get("/endpoints/:key/results", async (req: Req, res: Res) => {
@@ -25,11 +25,11 @@ router.get("/endpoints/:key/results", async (req: Req, res: Res) => {
   const results = await data.getResults(key, from);
   if (!results) {
     return res.status(404).send({
-      message: "endpoint not found"
+      message: "endpoint not found",
     });
   }
   res.send({
-    items: results
+    items: results,
   });
 });
 router.all("/:key", async (req: Req, res: Res) => {
@@ -39,7 +39,7 @@ router.all("/:key", async (req: Req, res: Res) => {
     const request = {
       method: req.method as any,
       headers: req.headers as any,
-      body: req.body
+      body: req.body,
     };
     await data.addRequest(key, request);
     for (const key in endpoint.response.headers) {
@@ -48,7 +48,7 @@ router.all("/:key", async (req: Req, res: Res) => {
     return res.status(endpoint.response.status).send(endpoint.response.body);
   }
   res.status(404).send({
-    message: "endpoint not found"
+    message: "endpoint not found",
   });
 });
 
@@ -59,11 +59,11 @@ app.use("/api", router);
 app.use((err: any, req: any, res: any, next: any) => {
   if (err instanceof DecodeError) {
     return res.status(400).send({
-      message: err.message
+      message: err.message,
     });
   }
   res.status(500).send({
-    message: "unexpected error"
+    message: "unexpected error",
   });
 });
 const handler = serverless(app);

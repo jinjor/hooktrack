@@ -7,7 +7,7 @@ export class DecodeError extends Error {}
 export const any: Decoder<any> = {
   run(value: unknown) {
     return value;
-  }
+  },
 };
 
 export const boolean: Decoder<boolean> = {
@@ -16,7 +16,7 @@ export const boolean: Decoder<boolean> = {
       throw new DecodeError(value + " is not a boolean!");
     }
     return value;
-  }
+  },
 };
 
 export const number: Decoder<number> = {
@@ -25,7 +25,7 @@ export const number: Decoder<number> = {
       throw new DecodeError(value + " is not a nubmer!");
     }
     return value;
-  }
+  },
 };
 
 export const string: Decoder<string> = {
@@ -34,7 +34,7 @@ export const string: Decoder<string> = {
       throw new DecodeError(value + " is not a string!");
     }
     return value;
-  }
+  },
 };
 
 export function optional<T>(d: Decoder<T>, alternative?: T): Decoder<T> {
@@ -44,7 +44,7 @@ export function optional<T>(d: Decoder<T>, alternative?: T): Decoder<T> {
         return alternative || value;
       }
       return d.run(value);
-    }
+    },
   };
 }
 
@@ -55,7 +55,7 @@ export function array<T>(d: Decoder<T>): Decoder<T[]> {
         throw new DecodeError(value + " is not an array!");
       }
       return value.map(d.run.bind(d));
-    }
+    },
   };
 }
 
@@ -70,7 +70,7 @@ export function object<T>(d: { [K in keyof T]: Decoder<T[K]> }): Decoder<T> {
         ret[key] = d[key].run((value as any)[key]);
       }
       return ret;
-    }
+    },
   };
 }
 
@@ -85,7 +85,7 @@ export function dict<V>(d: Decoder<V>): Decoder<{ [key: string]: V }> {
         ret[key] = d.run((value as any)[key]);
       }
       return ret;
-    }
+    },
   };
 }
 
@@ -100,7 +100,7 @@ export function oneOf<T>(d: Decoder<T>[]): Decoder<T> {
       throw new DecodeError(
         value + " cannot be decoded by any of " + d.length + " decoders!"
       );
-    }
+    },
   };
 }
 
@@ -113,7 +113,7 @@ export function keywords<T, V extends T>(keywords: V[]): Decoder<T> {
         }
       }
       throw new DecodeError(value + " should be one of " + keywords);
-    }
+    },
   };
 }
 
@@ -121,7 +121,7 @@ export function map<T, U>(f: (t: T) => U, d: Decoder<T>): Decoder<U> {
   return {
     run(value: unknown): U {
       return f(d.run(value));
-    }
+    },
   };
 }
 
@@ -134,7 +134,7 @@ export function toInt(d: Decoder<string>): Decoder<number> {
         throw new DecodeError(s + " is not an int!");
       }
       return n;
-    }
+    },
   };
 }
 
@@ -147,6 +147,6 @@ export function toNumber(d: Decoder<string>): Decoder<number> {
         throw new DecodeError(s + " is not a number!");
       }
       return n;
-    }
+    },
   };
 }

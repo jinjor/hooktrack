@@ -16,8 +16,8 @@ async function send(method: string, path: string, data: any): Promise<any> {
     method,
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json"
-    }
+      "Content-Type": "application/json",
+    },
   };
   if (data) {
     options.body = JSON.stringify(data);
@@ -31,16 +31,16 @@ async function post(path: string, data: any): Promise<any> {
   return send("POST", path, data);
 }
 
-describe("Hooktrack", function() {
+describe("Hooktrack", function () {
   this.timeout(30 * 1000);
   let netlifyLambda: ChildProcess;
   before(async () => {
     netlifyLambda = spawn("npm", ["run", "dev"], {
-      stdio: "inherit"
+      stdio: "inherit",
     });
     await waitOn(
       {
-        resources: [`tcp:localhost:${port}`]
+        resources: [`tcp:localhost:${port}`],
       },
       undefined
     );
@@ -52,12 +52,12 @@ describe("Hooktrack", function() {
       response: {
         status: 200,
         headers: {
-          foo: "bar"
+          foo: "bar",
         },
         body: JSON.stringify({
-          greeting: "Hello!"
-        })
-      }
+          greeting: "Hello!",
+        }),
+      },
     });
     const { key } = await res.json();
     res = await post(`/${key}`, { num: 1 });
@@ -101,58 +101,58 @@ describe("Hooktrack", function() {
       "PATCH",
       "DELETE",
       "HEAD",
-      "OPTION"
+      "OPTION",
     ]) {
       res = await post(`/endpoints`, {
-        method
+        method,
       });
       assert.equal(res.status, 200);
     }
     res = await post(`/endpoints`, {
-      method: ""
+      method: "",
     });
     assert.equal(res.status, 400);
     res = await post(`/endpoints`, {
       method: "GET",
       response: {
         status: 200,
-        body: ""
-      }
+        body: "",
+      },
     });
     assert.equal(res.status, 200);
     res = await post(`/endpoints`, {
       method: "GET",
       response: {
-        body: "{}"
-      }
+        body: "{}",
+      },
     });
     assert.equal(res.status, 200);
     res = await post(`/endpoints`, {
       method: "GET",
       response: {
-        status: 200
-      }
+        status: 200,
+      },
     });
     assert.equal(res.status, 200);
     res = await post(`/endpoints`, {
       method: "GET",
       response: {
-        body: {}
-      }
+        body: {},
+      },
     });
     assert.equal(res.status, 400);
     res = await post(`/endpoints`, {
       method: "GET",
       response: {
-        status: ""
-      }
+        status: "",
+      },
     });
     assert.equal(res.status, 400);
     res = await post(`/endpoints`, {
       method: "GET",
       response: {
-        headers: []
-      }
+        headers: [],
+      },
     });
     assert.equal(res.status, 400);
   });

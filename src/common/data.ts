@@ -8,7 +8,7 @@ import {
   string,
   keywords,
   dict,
-  toNumber
+  toNumber,
 } from "./decoder";
 
 const secret = process.env.FAUNADB_SERVER_SECRET || "";
@@ -47,16 +47,16 @@ const methodDecoder: Decoder<Method> = keywords([
   "PATCH",
   "DELETE",
   "HEAD",
-  "OPTION"
+  "OPTION",
 ]);
 const responseDecoder: Decoder<Response> = object({
   status: optional(number, 200),
   headers: optional(dict(string), {}),
-  body: optional(string)
+  body: optional(string),
 });
 export const endpointDecoder: Decoder<Endpoint> = object({
   method: methodDecoder,
-  response: optional(responseDecoder)
+  response: optional(responseDecoder),
 });
 export const fromDecoder: Decoder<number> = optional(toNumber(string));
 
@@ -83,12 +83,12 @@ class DataImpl implements Data {
     const key: string = uuid.v4();
     const data = {
       key,
-      endpoint
+      endpoint,
     };
     const res = await this.client.query(
       q.Create(q.Collection("endpoints"), {
         data,
-        ttl: q.Epoch(Date.now() + 1 * 60 * 60 * 1000, "millisecond")
+        ttl: q.Epoch(Date.now() + 1 * 60 * 60 * 1000, "millisecond"),
       })
     );
     console.log("addEndPoint:success", res);
@@ -99,12 +99,12 @@ class DataImpl implements Data {
     const result = {
       key,
       request,
-      requestedAt: Date.now()
+      requestedAt: Date.now(),
     };
     const res = await this.client.query(
       q.Create(q.Collection("results"), {
         data: result,
-        ttl: q.Epoch(Date.now() + 1 * 60 * 60 * 1000, "millisecond")
+        ttl: q.Epoch(Date.now() + 1 * 60 * 60 * 1000, "millisecond"),
       })
     );
     console.log("addRequest:success", res);
@@ -136,7 +136,7 @@ class DataImpl implements Data {
         q.Filter(
           q.Map(
             q.Paginate(q.Match("results_by_key_order_by_requestedAt", key), {
-              size: 100000
+              size: 100000,
             }),
             q.Lambda(["_", "ref"], q.Select("data", q.Get(q.Var("ref"))))
           ),

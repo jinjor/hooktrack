@@ -15,14 +15,14 @@ const client = new faunadb.Client({ secret });
     q.CreateCollection({
       name: "endpoints",
       history_days: 0,
-      ttl_days: 1
+      ttl_days: 1,
     })
   );
   await client.query(
     q.CreateCollection({
       name: "results",
       history_days: 0,
-      ttl_days: 1
+      ttl_days: 1,
     })
   );
   await client.query(
@@ -30,7 +30,7 @@ const client = new faunadb.Client({ secret });
       name: "endpoints_by_key",
       source: q.Collection("endpoints"),
       terms: [{ field: ["data", "key"] }],
-      unique: true
+      unique: true,
     })
   );
   await client.query(
@@ -40,12 +40,12 @@ const client = new faunadb.Client({ secret });
       terms: [{ field: ["data", "key"] }],
       values: [
         { field: ["data", "requestedAt"], reverse: true },
-        { field: ["ref"] }
+        { field: ["ref"] },
       ],
-      unique: true
+      unique: true,
     })
   );
-})().catch(e => {
+})().catch((e) => {
   console.log(e);
   process.exit(1);
 });
