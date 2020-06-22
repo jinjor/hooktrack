@@ -21,10 +21,10 @@ const client = new faunadb.Client({ secret });
   await client.query(
     q.CreateDatabase({
       name: dbName,
-      priority: 1
+      priority: 1,
     })
   );
-})().catch(e => {
+})().catch((e) => {
   console.log(e);
   process.exit(1);
 });
