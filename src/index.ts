@@ -57,7 +57,6 @@ router.all("/:key", async (req: Req, res: Res) => {
 });
 
 const app = express();
-app.use(express.json());
 app.use("/.netlify/functions/index", router);
 app.use("/api", router);
 app.use((err: any, req: any, res: any, next: any) => {
