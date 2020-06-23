@@ -11,7 +11,11 @@ type Res = express.Response;
 
 const router = PromiseRouter();
 
-router.use(express.json());
+router.use(
+  express.json({
+    strict: false,
+  })
+);
 router.post("/endpoints", async (req: Req, res: Res) => {
   const endpoint = endpointDecoder.run(req.body);
   const key = await data.addEndPoint(endpoint);
@@ -41,12 +45,10 @@ router.all("/:key", async (req: Req, res: Res) => {
       headers: req.headers as any,
       body: req.body,
     };
-    console.log("/:key 1", key, request);
     await data.addRequest(key, request);
     for (const key in endpoint.response.headers) {
       res.setHeader(key, endpoint.response.headers[key]);
     }
-    console.log("/:key 2", endpoint.response);
     return res.status(endpoint.response.status).send(endpoint.response.body);
   }
   res.status(404).send({
