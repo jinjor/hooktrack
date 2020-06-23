@@ -62,8 +62,10 @@ app.use((err: any, req: any, res: any, next: any) => {
       message: err.message,
     });
   }
+  console.log(err);
   res.status(500).send({
-    message: "unexpected error",
+    // message: "unexpected error",
+    message: err.message,
   });
 });
 const handler = serverless(app);
