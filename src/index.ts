@@ -44,9 +44,11 @@ router.use((req: Req, res: Res, next: Function) => {
           req.body = JSON.parse(text);
           next();
         } catch (e) {
-          res
-            .status(400)
-            .send({ message: "Only JSON body is supported for now" });
+          res.status(400).send({
+            message: "Only JSON body is supported for now",
+            text,
+            errorMessage: e.message,
+          });
         }
       } else {
         req.body = text;
