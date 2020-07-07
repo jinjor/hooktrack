@@ -27,11 +27,7 @@ async function send(
   };
   if (data) {
     if (gzip) {
-      const bin = await new Promise((resolve, reject) =>
-        zlib.gzip(Buffer.from(JSON.stringify(data)), (err, data) =>
-          err != null ? reject(err) : resolve(data)
-        )
-      );
+      const bin = zlib.gzipSync(JSON.stringify(data));
       options.headers["content-encoding"] = "gzip";
       options.body = bin;
     } else {
