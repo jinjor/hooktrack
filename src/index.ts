@@ -3,6 +3,8 @@ import serverless from "serverless-http";
 import { DecodeError } from "./common/decoder";
 import { getData, endpointDecoder, fromDecoder } from "./common/data";
 import PromiseRouter from "express-promise-router";
+import * as zlib from "zlib";
+import * as util from "util";
 
 const data = getData();
 
@@ -11,25 +13,51 @@ type Res = express.Response;
 
 const router = PromiseRouter();
 
-// For some reasons, `router.use(express.json())` does not work
-// when request body is gzipped...
+// Notes:
+// - For some reasons, `router.use(express.json())` does not work
+//   when request body is gzipped.
+// - netlify-lambda seems to inflate/gunzip automatically, but Netlify does not.
 router.use((req: Req, res: Res, next: Function) => {
   const data: Buffer[] = [];
+  // req.setEncoding("binary");
   req.on("data", (chunk) => {
     data.push(chunk);
   });
   req.on("end", () => {
-    const buffer = Buffer.concat(data);
+    let buffer = Buffer.concat(data);
     if (buffer.length) {
+      try {
+        switch (req.headers["content-encoding"]) {
+          case "gzip":
+            buffer = zlib.gunzipSync(buffer);
+            break;
+          case "deflate":
+            buffer = zlib.inflateSync(buffer);
+            break;
+        }
+      } catch (e) {
+        console.log(e);
+        res.status(400).send({
+          message: e.message,
+          buffer: util.inspect(buffer),
+          contentLength: req.headers["content-length"],
+          contentEncoding: req.headers["content-encoding"],
+          realByteLength: buffer.byteLength,
+        });
+        return;
+      }
       const text = buffer.toString();
       if (req.headers["content-type"] === "application/json") {
         try {
           req.body = JSON.parse(text);
           next();
         } catch (e) {
-          res
-            .status(400)
-            .send({ message: "Only JSON body is supported for now" });
+          res.status(400).send({
+            message: "Only JSON body is supported for now",
+            buffer: util.inspect(buffer),
+            text,
+            errorMessage: e.message,
+          });
         }
       } else {
         req.body = text;

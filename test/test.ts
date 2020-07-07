@@ -8,7 +8,9 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const port = 9000;
-const origin = `http://localhost:${port}/.netlify/functions/index`;
+const origin =
+  process.env.ORIGIN || `http://localhost:${port}/.netlify/functions/index`;
+const isE2E = origin.includes("netlify.app");
 
 async function send(
   method: string,
@@ -27,9 +29,15 @@ async function send(
   };
   if (data) {
     if (gzip) {
-      const bin = zlib.gzipSync(JSON.stringify(data));
+      const str = JSON.stringify(data);
+      console.log("str", Buffer.from(str));
+      const buffer: Buffer = zlib.gzipSync(JSON.stringify(data));
+      console.log("buffer", buffer);
       options.headers["content-encoding"] = "gzip";
-      options.body = bin;
+      // options.headers["content-length"] = buffer.byteLength;
+      options.body = buffer;
+      // options.compress = true;
+      // options.body = JSON.stringify(data);
     } else {
       options.body = JSON.stringify(data);
     }
@@ -71,10 +79,13 @@ describe("Hooktrack", function () {
         }),
       },
     });
+    const json = await res.json();
+    console.log(json);
     assert.equal(res.status, 200);
-    const { key } = await res.json();
+    // const { key } = await res.json();
+    const { key } = json;
     res = await post(`/${key}`, { num: 1 });
-    res = await post(`/${key}`, { num: 2 }, true);
+    res = await post(`/${key}`, { num: 2 });
     assert.equal(res.status, 200);
     const data = await res.json();
     assert.equal(res.headers.get("foo"), "bar");
@@ -90,6 +101,37 @@ describe("Hooktrack", function () {
     res = await get(`/endpoints/${key}/results?from=${Date.now() - 10 * 1000}`);
     results = await res.json();
     assert.equal(results.items.length, 2);
+  });
+  it("gzip", async function () {
+    if (!isE2E) {
+      this.skip();
+    }
+    let res;
+    res = await post(`/endpoints`, {
+      method: "POST",
+      response: {
+        status: 200,
+        headers: {
+          foo: "bar",
+        },
+        body: JSON.stringify({
+          greeting: "Hello!",
+        }),
+      },
+    });
+    assert.equal(res.status, 200);
+    const { key } = await res.json();
+    res = await post(`/${key}`, { num: 0 }, true);
+    const data = await res.json();
+    console.log(data);
+
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get("foo"), "bar");
+    assert.equal(data.greeting, "Hello!");
+    res = await get(`/endpoints/${key}/results`);
+    let results = await res.json();
+    assert.equal(results.items.length, 1);
+    assert.deepEqual(results.items[0].request.body, { num: 0 });
   });
   it("errors", async () => {
     let res;
