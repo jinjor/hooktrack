@@ -4,6 +4,7 @@ import { DecodeError } from "./common/decoder";
 import { getData, endpointDecoder, fromDecoder } from "./common/data";
 import PromiseRouter from "express-promise-router";
 import * as zlib from "zlib";
+import * as util from "util";
 
 const data = getData();
 
@@ -35,7 +36,9 @@ router.use((req: Req, res: Res, next: Function) => {
         }
       } catch (e) {
         console.log(e);
-        res.status(400).send({ message: e.message });
+        res
+          .status(400)
+          .send({ message: e.message, buffer: util.inspect(buffer) });
         return;
       }
       const text = buffer.toString();
@@ -46,6 +49,7 @@ router.use((req: Req, res: Res, next: Function) => {
         } catch (e) {
           res.status(400).send({
             message: "Only JSON body is supported for now",
+            buffer: util.inspect(buffer),
             text,
             errorMessage: e.message,
           });

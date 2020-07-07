@@ -29,7 +29,10 @@ async function send(
   };
   if (data) {
     if (gzip) {
+      const str = JSON.stringify(data);
+      console.log("str", Buffer.from(str));
       const buffer: Buffer = zlib.gzipSync(JSON.stringify(data));
+      console.log("buffer", buffer);
       options.headers["content-encoding"] = "gzip";
       // options.headers["content-length"] = buffer.byteLength;
       options.body = buffer;
