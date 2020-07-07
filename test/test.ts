@@ -33,6 +33,7 @@ async function send(
       options.headers["content-encoding"] = "gzip";
       // options.headers["content-length"] = buffer.byteLength;
       options.body = buffer;
+      // options.compress = true;
       // options.body = JSON.stringify(data);
     } else {
       options.body = JSON.stringify(data);
