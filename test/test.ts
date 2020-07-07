@@ -29,9 +29,11 @@ async function send(
   };
   if (data) {
     if (gzip) {
-      const bin = zlib.gzipSync(JSON.stringify(data));
+      const buffer: Buffer = zlib.gzipSync(JSON.stringify(data));
       options.headers["content-encoding"] = "gzip";
-      options.body = bin;
+      // options.headers["content-length"] = buffer.byteLength;
+      options.body = buffer;
+      // options.body = JSON.stringify(data);
     } else {
       options.body = JSON.stringify(data);
     }
@@ -73,8 +75,11 @@ describe("Hooktrack", function () {
         }),
       },
     });
+    const json = await res.json();
+    console.log(json);
     assert.equal(res.status, 200);
-    const { key } = await res.json();
+    // const { key } = await res.json();
+    const { key } = json;
     res = await post(`/${key}`, { num: 1 });
     res = await post(`/${key}`, { num: 2 });
     assert.equal(res.status, 200);
@@ -113,7 +118,7 @@ describe("Hooktrack", function () {
     assert.equal(res.status, 200);
     const { key } = await res.json();
     res = await post(`/${key}`, { num: 0 }, true);
-    const data = await res.text();
+    const data = await res.json();
     console.log(data);
 
     assert.equal(res.status, 200);
