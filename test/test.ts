@@ -10,7 +10,12 @@ dotenv.config();
 const port = 9000;
 const origin = `http://localhost:${port}/.netlify/functions/index`;
 
-async function send(method: string, path: string, data: any, gzip?: true): Promise<any> {
+async function send(
+  method: string,
+  path: string,
+  data: any,
+  gzip?: true
+): Promise<any> {
   console.log(method, path);
   const url = origin + path;
   const options: any = {
@@ -21,14 +26,15 @@ async function send(method: string, path: string, data: any, gzip?: true): Promi
     },
   };
   if (data) {
-    if(gzip){
-      const bin = await new Promise((resolve, reject)=>
-        zlib.gzip(
-          Buffer.from(JSON.stringify(data)),
-          (err, data)=> err != null ? reject(err) : resolve(data) ) );
+    if (gzip) {
+      const bin = await new Promise((resolve, reject) =>
+        zlib.gzip(Buffer.from(JSON.stringify(data)), (err, data) =>
+          err != null ? reject(err) : resolve(data)
+        )
+      );
       options.headers["content-encoding"] = "gzip";
       options.body = bin;
-    }else{
+    } else {
       options.body = JSON.stringify(data);
     }
   }
