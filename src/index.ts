@@ -11,11 +11,35 @@ type Res = express.Response;
 
 const router = PromiseRouter();
 
-router.use(
-  express.json({
-    strict: false,
-  })
-);
+// For some reasons, `router.use(express.json())` does not work
+// when request body is gzipped...
+router.use((req: Req, res: Res, next: Function) => {
+  const data: Buffer[] = [];
+  req.on("data", (chunk) => {
+    data.push(chunk);
+  });
+  req.on("end", () => {
+    const buffer = Buffer.concat(data);
+    if (buffer.length) {
+      const text = buffer.toString();
+      if (req.headers["content-type"] === "application/json") {
+        try {
+          req.body = JSON.parse(text);
+          next();
+        } catch (e) {
+          res
+            .status(400)
+            .send({ message: "Only JSON body is supported for now" });
+        }
+      } else {
+        req.body = text;
+        next();
+      }
+    } else {
+      next();
+    }
+  });
+});
 router.post("/endpoints", async (req: Req, res: Res) => {
   const endpoint = endpointDecoder.run(req.body);
   const key = await data.addEndPoint(endpoint);

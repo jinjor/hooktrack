@@ -1,3 +1,4 @@
+import * as zlib from "zlib";
 import fetch from "node-fetch";
 import * as assert from "assert";
 import { spawn, ChildProcess } from "child_process";
@@ -9,7 +10,12 @@ dotenv.config();
 const port = 9000;
 const origin = `http://localhost:${port}/.netlify/functions/index`;
 
-async function send(method: string, path: string, data: any): Promise<any> {
+async function send(
+  method: string,
+  path: string,
+  data: any,
+  gzip?: true
+): Promise<any> {
   console.log(method, path);
   const url = origin + path;
   const options: any = {
@@ -20,15 +26,21 @@ async function send(method: string, path: string, data: any): Promise<any> {
     },
   };
   if (data) {
-    options.body = JSON.stringify(data);
+    if (gzip) {
+      const bin = zlib.gzipSync(JSON.stringify(data));
+      options.headers["content-encoding"] = "gzip";
+      options.body = bin;
+    } else {
+      options.body = JSON.stringify(data);
+    }
   }
   return fetch(url, options);
 }
 async function get(path: string): Promise<any> {
   return send("GET", path, null);
 }
-async function post(path: string, data: any): Promise<any> {
-  return send("POST", path, data);
+async function post(path: string, data: any, gzip?: true): Promise<any> {
+  return send("POST", path, data, gzip);
 }
 
 describe("Hooktrack", function () {
@@ -59,9 +71,10 @@ describe("Hooktrack", function () {
         }),
       },
     });
+    assert.equal(res.status, 200);
     const { key } = await res.json();
     res = await post(`/${key}`, { num: 1 });
-    res = await post(`/${key}`, { num: 2 });
+    res = await post(`/${key}`, { num: 2 }, true);
     assert.equal(res.status, 200);
     const data = await res.json();
     assert.equal(res.headers.get("foo"), "bar");
