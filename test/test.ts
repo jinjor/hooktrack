@@ -83,8 +83,6 @@ describe("Hooktrack", function () {
     const data = await res.json();
     assert.equal(res.headers.get("foo"), "bar");
     assert.equal(data.greeting, "Hello!");
-    res = await post(`/${key}`, 0);
-    assert.equal(res.status, 500, "primitive type is not accepted");
     res = await get(`/endpoints/${key}/results`);
     let results = await res.json();
     assert.equal(results.items.length, 2);
