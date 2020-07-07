@@ -3,6 +3,7 @@ import serverless from "serverless-http";
 import { DecodeError } from "./common/decoder";
 import { getData, endpointDecoder, fromDecoder } from "./common/data";
 import PromiseRouter from "express-promise-router";
+import * as zlib from "zlib";
 
 const data = getData();
 
@@ -11,41 +12,45 @@ type Res = express.Response;
 
 const router = PromiseRouter();
 
-// For some reasons, `router.use(express.json())` does not work
-// when request body is gzipped...
-// router.use((req: Req, res: Res, next: Function) => {
-//   const data: Buffer[] = [];
-//   req.on("data", (chunk) => {
-//     data.push(chunk);
-//   });
-//   req.on("end", () => {
-//     const buffer = Buffer.concat(data);
-//     if (buffer.length) {
-//       const text = buffer.toString();
-//       if (req.headers["content-type"] === "application/json") {
-//         try {
-//           req.body = JSON.parse(text);
-//           next();
-//         } catch (e) {
-//           res
-//             .status(400)
-//             .send({ message: "Only JSON body is supported for now" });
-//         }
-//       } else {
-//         req.body = text;
-//         next();
-//       }
-//     } else {
-//       next();
-//     }
-//   });
-// });
-router.use(
-  express.json({
-    strict: false,
-    inflate: true, // same as default
-  })
-);
+// Notes:
+// - For some reasons, `router.use(express.json())` does not work
+//   when request body is gzipped.
+// - netlify-lambda seems to inflate/gunzip automatically, but Netlify does not.
+router.use((req: Req, res: Res, next: Function) => {
+  const data: Buffer[] = [];
+  req.on("data", (chunk) => {
+    data.push(chunk);
+  });
+  req.on("end", () => {
+    let buffer = Buffer.concat(data);
+    if (buffer.length) {
+      switch (req.headers["content-encoding"]) {
+        case "gzip":
+          buffer = zlib.gunzipSync(buffer);
+          break;
+        case "deflate":
+          buffer = zlib.inflateSync(buffer);
+          break;
+      }
+      const text = buffer.toString();
+      if (req.headers["content-type"] === "application/json") {
+        try {
+          req.body = JSON.parse(text);
+          next();
+        } catch (e) {
+          res
+            .status(400)
+            .send({ message: "Only JSON body is supported for now" });
+        }
+      } else {
+        req.body = text;
+        next();
+      }
+    } else {
+      next();
+    }
+  });
+});
 router.post("/endpoints", async (req: Req, res: Res) => {
   const endpoint = endpointDecoder.run(req.body);
   const key = await data.addEndPoint(endpoint);
