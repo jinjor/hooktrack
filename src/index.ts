@@ -38,7 +38,7 @@ router.use((req: Req, res: Res, next: Function) => {
       //   res.status(400).send({ message: e.message });
       //   return;
       // }
-      const text = buffer.toString();
+      const text = buffer.toString("utf8");
       if (req.headers["content-type"] === "application/json") {
         try {
           req.body = JSON.parse(text);
