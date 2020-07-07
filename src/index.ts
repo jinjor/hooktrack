@@ -24,13 +24,19 @@ router.use((req: Req, res: Res, next: Function) => {
   req.on("end", () => {
     let buffer = Buffer.concat(data);
     if (buffer.length) {
-      switch (req.headers["content-encoding"]) {
-        case "gzip":
-          buffer = zlib.gunzipSync(buffer);
-          break;
-        case "deflate":
-          buffer = zlib.inflateSync(buffer);
-          break;
+      try {
+        switch (req.headers["content-encoding"]) {
+          case "gzip":
+            buffer = zlib.gunzipSync(buffer);
+            break;
+          case "deflate":
+            buffer = zlib.inflateSync(buffer);
+            break;
+        }
+      } catch (e) {
+        console.log(e);
+        res.status(400).send({ message: e.message });
+        return;
       }
       const text = buffer.toString();
       if (req.headers["content-type"] === "application/json") {
