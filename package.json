@@ -33,7 +33,6 @@
     "wait-on": "^3.3.0"
   },
   "dependencies": {
-    "compression": "^1.7.4",
     "express": "^4.17.1",
     "express-promise-router": "^3.0.3",
     "faunadb": "^2.14.2",

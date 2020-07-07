@@ -1,4 +1,3 @@
-import * as compression from 'compression';
 import * as express from "express";
 import serverless from "serverless-http";
 import { DecodeError } from "./common/decoder";
@@ -58,7 +57,6 @@ router.all("/:key", async (req: Req, res: Res) => {
 });
 
 const app = express();
-app.use(compression());
 app.use("/.netlify/functions/index", router);
 app.use("/api", router);
 app.use((err: any, req: any, res: any, next: any) => {
