@@ -27,7 +27,7 @@ router.use((req: Req, res: Res, next: Function) => {
       try {
         switch (req.headers["content-encoding"]) {
           case "gzip":
-            buffer = zlib.inflateSync(buffer);
+            buffer = zlib.gunzipSync(buffer);
             break;
           case "deflate":
             buffer = zlib.inflateSync(buffer);
