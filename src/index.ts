@@ -37,12 +37,16 @@ router.use((req: Req, res: Res, next: Function) => {
         }
       } catch (e) {
         console.log(e);
-        res
-          .status(400)
-          .send({ message: e.message, buffer: util.inspect(buffer) });
+        res.status(400).send({
+          message: e.message,
+          buffer: util.inspect(buffer),
+          contentLength: req.headers["content-length"],
+          contentEncoding: req.headers["content-encoding"],
+          realByteLength: buffer.byteLength,
+        });
         return;
       }
-      const text = buffer.toString("base64");
+      const text = buffer.toString();
       if (req.headers["content-type"] === "application/json") {
         try {
           req.body = JSON.parse(text);
