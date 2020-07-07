@@ -19,7 +19,7 @@ const router = PromiseRouter();
 // - netlify-lambda seems to inflate/gunzip automatically, but Netlify does not.
 router.use((req: Req, res: Res, next: Function) => {
   const data: Buffer[] = [];
-  req.setEncoding("binary");
+  // req.setEncoding("binary");
   req.on("data", (chunk) => {
     data.push(chunk);
   });
@@ -42,7 +42,7 @@ router.use((req: Req, res: Res, next: Function) => {
           .send({ message: e.message, buffer: util.inspect(buffer) });
         return;
       }
-      const text = buffer.toString();
+      const text = buffer.toString("base64");
       if (req.headers["content-type"] === "application/json") {
         try {
           req.body = JSON.parse(text);
