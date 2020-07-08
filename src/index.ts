@@ -78,9 +78,13 @@ async function inflateIfNeeded(
 ): Promise<string> {
   try {
     if (contentEncoding === "gzip") {
-      return (await promisify(gunzip)(Buffer.from(source))).toString();
+      return (
+        await promisify(gunzip)(Buffer.from(source, "base64"))
+      ).toString();
     } else if (contentEncoding === "deflate") {
-      return (await promisify(inflate)(Buffer.from(source))).toString();
+      return (
+        await promisify(inflate)(Buffer.from(source, "base64"))
+      ).toString();
     }
     return source;
   } catch (e) {
