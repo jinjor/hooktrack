@@ -77,9 +77,9 @@ async function inflateIfNeeded(
   contentEncoding: string
 ): Promise<string> {
   if (contentEncoding === "gzip") {
-    return (await promisify(gunzip)(source)).toString();
+    return (await promisify(gunzip)(Buffer.from(source))).toString();
   } else if (contentEncoding === "deflate") {
-    return (await promisify(inflate)(source)).toString();
+    return (await promisify(inflate)(Buffer.from(source))).toString();
   }
   return source;
 }
