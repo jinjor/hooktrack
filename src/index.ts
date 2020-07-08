@@ -71,7 +71,7 @@ function decode<T>(decoder: Decoder<T>, value: unknown): T {
   }
 }
 function trimPath(path: string): string {
-  return path.replace(/(^\/\.netlify\/functions\/index|^\/app)/, "");
+  return path.replace(/(^\/\.netlify\/functions\/index|^\/api)/, "");
 }
 function parseJson(body: string): any {
   try {
