@@ -1,7 +1,8 @@
 import { getData, endpointDecoder, fromDecoder } from "./common/data";
 import * as lambda from "aws-lambda";
 import { Decoder } from "./common/decoder";
-import * as util from "util";
+import { inspect, promisify } from "util";
+import { gunzip, inflate } from "zlib";
 
 const data = getData();
 
@@ -13,6 +14,13 @@ const handler: lambda.APIGatewayProxyHandler = async (
     const method = event.httpMethod;
     const path = trimPath(event.path);
     const headers = event.headers;
+    // prd only
+    if (!event.path.includes("functions")) {
+      event.body = await inflateIfNeeded(
+        event.body,
+        headers["content-encoding"]
+      );
+    }
     const body = parseJson(event.body);
     let matched = [];
     if (method === "POST" && path === "/endpoints") {
@@ -64,6 +72,17 @@ const handler: lambda.APIGatewayProxyHandler = async (
     });
   }
 };
+async function inflateIfNeeded(
+  source: string,
+  contentEncoding: string
+): Promise<string> {
+  if (contentEncoding === "gzip") {
+    return (await promisify(gunzip)(source)).toString();
+  } else if (contentEncoding === "deflate") {
+    return (await promisify(inflate)(source)).toString();
+  }
+  return source;
+}
 function decode<T>(decoder: Decoder<T>, value: unknown): T {
   try {
     return decoder.run(value);
@@ -80,7 +99,7 @@ function parseJson(body: string): any {
   } catch (e) {
     throw new StatusError(
       400,
-      "Only JSON body is supported for now: " + util.inspect(body)
+      "Only JSON body is supported for now: " + inspect(body)
     );
   }
 }
