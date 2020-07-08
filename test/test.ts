@@ -8,7 +8,8 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const port = 9000;
-const origin = `http://localhost:${port}/.netlify/functions/index`;
+const origin =
+  process.env.ORIGIN || `http://localhost:${port}/.netlify/functions/index`;
 
 async function send(
   method: string,
