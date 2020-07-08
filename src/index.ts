@@ -3,6 +3,7 @@ import * as lambda from "aws-lambda";
 import { Decoder } from "./common/decoder";
 import { inspect, promisify } from "util";
 import { gunzip, inflate } from "zlib";
+import { utils } from "mocha";
 
 const data = getData();
 
@@ -88,7 +89,7 @@ async function inflateIfNeeded(
     }
     return source;
   } catch (e) {
-    throw new StatusError(400, e.message);
+    throw new StatusError(400, e.message + ": " + inspect(source));
   }
 }
 function decode<T>(decoder: Decoder<T>, value: unknown): T {
