@@ -109,10 +109,7 @@ function parseJson(body: string): any {
   try {
     return body && typeof body === "string" ? JSON.parse(body) : null;
   } catch (e) {
-    throw new StatusError(
-      400,
-      "Only JSON body is supported for now: " + inspect(body)
-    );
+    throw new StatusError(400, "Only JSON body is supported for now: " + body);
   }
 }
 function sendJson(statusCode: number, body: any): lambda.APIGatewayProxyResult {
