@@ -89,7 +89,10 @@ async function inflateIfNeeded(
     }
     return source;
   } catch (e) {
-    throw new StatusError(400, e.message + ": " + inspect(source));
+    throw new StatusError(
+      400,
+      e.message + ": " + typeof source + ": " + source
+    );
   }
 }
 function decode<T>(decoder: Decoder<T>, value: unknown): T {
