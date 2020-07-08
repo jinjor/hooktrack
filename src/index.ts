@@ -1,6 +1,7 @@
 import { getData, endpointDecoder, fromDecoder } from "./common/data";
 import * as lambda from "aws-lambda";
 import { Decoder } from "./common/decoder";
+import * as util from "util";
 
 const data = getData();
 
@@ -77,7 +78,10 @@ function parseJson(body: string): any {
   try {
     return body && typeof body === "string" ? JSON.parse(body) : null;
   } catch (e) {
-    throw new StatusError(400, "Only JSON body is supported for now");
+    throw new StatusError(
+      400,
+      "Only JSON body is supported for now: " + util.inspect(body)
+    );
   }
 }
 function sendJson(statusCode: number, body: any): lambda.APIGatewayProxyResult {

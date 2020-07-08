@@ -76,8 +76,8 @@ describe("Hooktrack", function () {
     const { key } = await res.json();
     res = await post(`/${key}`, { num: 1 });
     res = await post(`/${key}`, { num: 2 }, true);
-    assert.equal(res.status, 200);
     const data = await res.json();
+    assert.equal(res.status, 200, data.message);
     assert.equal(res.headers.get("foo"), "bar");
     assert.equal(data.greeting, "Hello!");
     res = await get(`/endpoints/${key}/results`);
