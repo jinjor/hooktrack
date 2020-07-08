@@ -1,99 +1,125 @@
-import * as express from "express";
-import serverless from "serverless-http";
-import { DecodeError } from "./common/decoder";
 import { getData, endpointDecoder, fromDecoder } from "./common/data";
-import PromiseRouter from "express-promise-router";
+import * as lambda from "aws-lambda";
+import { Decoder } from "./common/decoder";
+import { inspect, promisify } from "util";
+import { gunzip, inflate } from "zlib";
+import { utils } from "mocha";
 
 const data = getData();
 
-type Req = express.Request;
-type Res = express.Response;
-
-const router = PromiseRouter();
-
-// For some reasons, `router.use(express.json())` does not work
-// when request body is gzipped...
-router.use((req: Req, res: Res, next: Function) => {
-  const data: Buffer[] = [];
-  req.on("data", (chunk) => {
-    data.push(chunk);
-  });
-  req.on("end", () => {
-    const buffer = Buffer.concat(data);
-    if (buffer.length) {
-      const text = buffer.toString();
-      if (req.headers["content-type"] === "application/json") {
-        try {
-          req.body = JSON.parse(text);
-          next();
-        } catch (e) {
-          res
-            .status(400)
-            .send({ message: "Only JSON body is supported for now" });
-        }
-      } else {
-        req.body = text;
-        next();
+const handler: lambda.APIGatewayProxyHandler = async (
+  event: lambda.APIGatewayProxyEvent,
+  context: lambda.Context
+) => {
+  try {
+    const method = event.httpMethod;
+    const path = trimPath(event.path);
+    const headers = event.headers;
+    // prd only
+    if (!event.path.includes("functions")) {
+      event.body = await inflateIfNeeded(
+        event.body,
+        headers["content-encoding"]
+      );
+    }
+    const body = parseJson(event.body);
+    let matched = [];
+    if (method === "POST" && path === "/endpoints") {
+      const endpoint = decode(endpointDecoder, body);
+      const key = await data.addEndPoint(endpoint);
+      return sendJson(200, { key });
+    } else if (
+      method === "GET" &&
+      (matched = /^\/endpoints\/([^/]+)\/results/.exec(path))
+    ) {
+      const key = matched[1];
+      const from = decode(fromDecoder, event.queryStringParameters.from);
+      const results = await data.getResults(key, from);
+      if (!results) {
+        throw new StatusError(404, "endpoint not found");
       }
-    } else {
-      next();
+      return sendJson(200, {
+        items: results,
+      });
+    } else if ((matched = /^\/([^/]+)/.exec(path))) {
+      const key = matched[1];
+      const endpoint = await data.getEndpoint(key);
+      if (endpoint && endpoint.method === method) {
+        const request = {
+          method,
+          headers,
+          body,
+        };
+        await data.addRequest(key, request);
+        console.log("endpoint.response", endpoint.response);
+        return {
+          statusCode: endpoint.response.status,
+          headers: endpoint.response.headers,
+          body: endpoint.response.body,
+        };
+      }
+      // fall through
     }
-  });
-});
-router.post("/endpoints", async (req: Req, res: Res) => {
-  const endpoint = endpointDecoder.run(req.body);
-  const key = await data.addEndPoint(endpoint);
-  res.send({
-    key,
-  });
-});
-router.get("/endpoints/:key/results", async (req: Req, res: Res) => {
-  const key = req.params.key;
-  const from = fromDecoder.run(req.query.from);
-  const results = await data.getResults(key, from);
-  if (!results) {
-    return res.status(404).send({
-      message: "endpoint not found",
+    throw new StatusError(404, "path not found");
+  } catch (e) {
+    if (e instanceof StatusError) {
+      return sendJson(e.code, {
+        message: e.message,
+      });
+    }
+    console.log("unhandled", e);
+    return sendJson(500, {
+      message: "unexpected error",
     });
   }
-  res.send({
-    items: results,
-  });
-});
-router.all("/:key", async (req: Req, res: Res) => {
-  const key = req.params.key;
-  const endpoint = await data.getEndpoint(key);
-  if (endpoint && endpoint.method === req.method) {
-    const request = {
-      method: req.method as any,
-      headers: req.headers as any,
-      body: req.body,
-    };
-    await data.addRequest(key, request);
-    for (const key in endpoint.response.headers) {
-      res.setHeader(key, endpoint.response.headers[key]);
+};
+async function inflateIfNeeded(
+  source: string,
+  contentEncoding: string
+): Promise<string> {
+  try {
+    if (contentEncoding === "gzip") {
+      return (
+        await promisify(gunzip)(Buffer.from(source, "base64"))
+      ).toString();
+    } else if (contentEncoding === "deflate") {
+      return (
+        await promisify(inflate)(Buffer.from(source, "base64"))
+      ).toString();
     }
-    return res.status(endpoint.response.status).send(endpoint.response.body);
+    return source;
+  } catch (e) {
+    throw new StatusError(
+      400,
+      e.message + ": " + typeof source + ": " + source
+    );
   }
-  res.status(404).send({
-    message: "endpoint not found",
-  });
-});
-
-const app = express();
-app.use("/.netlify/functions/index", router);
-app.use("/api", router);
-app.use((err: any, req: any, res: any, next: any) => {
-  if (err instanceof DecodeError) {
-    return res.status(400).send({
-      message: err.message,
-    });
+}
+function decode<T>(decoder: Decoder<T>, value: unknown): T {
+  try {
+    return decoder.run(value);
+  } catch (e) {
+    throw new StatusError(400, e.message);
   }
-  console.log("unhandled", err);
-  res.status(500).send({
-    message: "unexpected error",
-  });
-});
-const handler = serverless(app);
+}
+function trimPath(path: string): string {
+  return path.replace(/(^\/\.netlify\/functions\/index|^\/api)/, "");
+}
+function parseJson(body: string): any {
+  try {
+    return body && typeof body === "string" ? JSON.parse(body) : null;
+  } catch (e) {
+    throw new StatusError(400, "Only JSON body is supported for now: " + body);
+  }
+}
+function sendJson(statusCode: number, body: any): lambda.APIGatewayProxyResult {
+  return {
+    statusCode,
+    body: JSON.stringify(body),
+  };
+}
+class StatusError {
+  constructor(public code: number, public message: string) {}
+}
 
 exports.handler = handler;
