@@ -76,12 +76,16 @@ async function inflateIfNeeded(
   source: string,
   contentEncoding: string
 ): Promise<string> {
-  if (contentEncoding === "gzip") {
-    return (await promisify(gunzip)(Buffer.from(source))).toString();
-  } else if (contentEncoding === "deflate") {
-    return (await promisify(inflate)(Buffer.from(source))).toString();
+  try {
+    if (contentEncoding === "gzip") {
+      return (await promisify(gunzip)(Buffer.from(source))).toString();
+    } else if (contentEncoding === "deflate") {
+      return (await promisify(inflate)(Buffer.from(source))).toString();
+    }
+    return source;
+  } catch (e) {
+    throw new StatusError(400, e.message);
   }
-  return source;
 }
 function decode<T>(decoder: Decoder<T>, value: unknown): T {
   try {
