@@ -25,19 +25,16 @@ router.use((req: Req, res: Res, next: Function) => {
       if (req.headers["content-type"] === "application/json") {
         try {
           req.body = JSON.parse(text);
-          next();
         } catch (e) {
-          res
+          return res
             .status(400)
             .send({ message: "Only JSON body is supported for now" });
         }
       } else {
         req.body = text;
-        next();
       }
-    } else {
-      next();
     }
+    next();
   });
 });
 router.post("/endpoints", async (req: Req, res: Res) => {
