@@ -33,7 +33,7 @@
     "wait-on": "^3.3.0"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-promise-router": "^3.0.3",
     "faunadb": "^2.14.2",
     "serverless-http": "^2.5.0",
